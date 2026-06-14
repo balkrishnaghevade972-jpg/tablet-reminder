@@ -1,11 +1,13 @@
-let reminders=[];
-let editId=null;
-let currentAudio=null;
+let reminders = [];
 
-const API=
+let editId = null;
+
+let currentAudio = null;
+
+const API =
 "https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
-if("Notification" in window){
+if ("Notification" in window) {
 
 window.addEventListener(
 
@@ -13,11 +15,21 @@ window.addEventListener(
 
 ()=>{
 
+if(
+
+Notification.permission !==
+
+"granted"
+
+){
+
 Notification.requestPermission();
+
+}
 
 },
 
-{once:true}
+{ once:true }
 
 );
 
@@ -25,28 +37,36 @@ Notification.requestPermission();
 
 async function saveReminder(){
 
-let tablet=
-document.getElementById("tablet").value;
+let tablet =
+document.getElementById(
+"tablet"
+).value;
 
-let message=
-document.getElementById("message").value;
+let message =
+document.getElementById(
+"message"
+).value;
 
-let time=
-document.getElementById("time").value;
+let time =
+document.getElementById(
+"time"
+).value;
 
 if(
-!tablet||
-!message||
+!tablet ||
+!message ||
 !time
 ){
 
-alert("Fill all fields");
+alert(
+"Fill all fields"
+);
 
 return;
 
 }
 
-const data={
+let data = {
 
 tablet,
 message,
@@ -67,7 +87,8 @@ if(editId){
 await fetch(
 
 API+
-"/edit/"+editId,
+"/edit/"+
+editId,
 
 {
 
@@ -79,7 +100,9 @@ headers:{
 },
 
 body:
-JSON.stringify(data)
+JSON.stringify(
+data
+)
 
 }
 
@@ -106,7 +129,9 @@ headers:{
 },
 
 body:
-JSON.stringify(data)
+JSON.stringify(
+data
+)
 
 }
 
@@ -118,15 +143,15 @@ clearInputs();
 
 await loadReminders();
 
-alert(
-"Reminder Saved"
-);
-
 }
 
 catch(err){
 
 console.log(err);
+
+alert(
+"Unable to save reminder"
+);
 
 }
 
@@ -134,35 +159,26 @@ console.log(err);
 
 function clearInputs(){
 
-document.getElementById("tablet").value="";
-document.getElementById("message").value="";
-document.getElementById("time").value="";
+document.getElementById(
+"tablet"
+).value="";
 
-}
+document.getElementById(
+"message"
+).value="";
 
-async function loadReminders(){
+document.getElementById(
+"time"
+).value="";
 
-try{
-
-const res=
-
-await fetch(
-
-API+"/all"
-
+let tone =
+document.getElementById(
+"tone"
 );
 
-reminders=
+if(tone){
 
-await res.json();
-
-displayReminder();
-
-}
-
-catch(err){
-
-console.log(err);
+tone.value="";
 
 }
 
@@ -170,28 +186,36 @@ console.log(err);
 
 function displayReminder(){
 
-const list=
+let list =
 document.getElementById(
 "list"
 );
 
 if(
-!reminders.length
+reminders.length===0
 ){
 
-list.innerHTML=
+list.innerHTML=`
 
-"<div class='card'>🌸 No reminders</div>";
+<div class="card">
+
+🌸 No reminders yet
+
+</div>
+
+`;
 
 return;
 
 }
 
-list.innerHTML=
+let output="";
 
-reminders.map(
+reminders.forEach(
 
-(r,index)=>`
+(r,index)=>{
+
+output += `
 
 <div class="card">
 
@@ -215,25 +239,38 @@ ${r.message}
 
 <p>
 
-${r.status||
-
-"Upcoming"}
+Status:
+${r.status || "Upcoming"}
 
 </p>
 
-<button onclick="editReminder('${r._id}')">
+<div class="action-row">
+
+<button
+onclick=
+"editReminder('${r._id}')"
+
+>
 
 ✏ Edit
 
 </button>
 
-<button onclick="markDone(${index})">
+<button
+onclick=
+"markDone(${index})"
+
+>
 
 ✅ Taken
 
 </button>
 
-<button onclick="deleteReminder(${index})">
+<button
+onclick=
+"deleteReminder(${index})"
+
+>
 
 🗑 Delete
 
@@ -241,52 +278,55 @@ ${r.status||
 
 </div>
 
-`
+</div>
 
-).join("");
+`;
 
 }
 
-function editReminder(id){
+);
 
-const r=
+list.innerHTML=
+output;
 
-reminders.find(
+}
 
-x=>
+async function loadReminders(){
 
-x._id===id
+try{
+
+let res=
+
+await fetch(
+
+API+
+"/all"
 
 );
 
-if(!r)
-return;
+reminders=
 
-document.getElementById(
-"tablet"
-).value=
-r.tablet;
+await res.json();
 
-document.getElementById(
-"message"
-).value=
-r.message;
+displayReminder();
 
-document.getElementById(
-"time"
-).value=
-r.time;
+}
 
-editId=id;
+catch(err){
+
+console.log(err);
+
+}
 
 }
 
 async function deleteReminder(index){
 
+try{
+
 await fetch(
 
 API+
-
 "/delete/"+
 
 reminders[index]._id,
@@ -304,7 +344,56 @@ loadReminders();
 
 }
 
+catch(err){
+
+console.log(err);
+
+}
+
+}
+
+function editReminder(id){
+
+let reminder=
+
+reminders.find(
+
+r=>
+
+r._id===id
+
+);
+
+if(
+!reminder
+)
+return;
+
+document.getElementById(
+"tablet"
+).value=
+
+reminder.tablet;
+
+document.getElementById(
+"message"
+).value=
+
+reminder.message;
+
+document.getElementById(
+"time"
+).value=
+
+reminder.time;
+
+editId=id;
+
+}
+
 async function markDone(index){
+
+try{
 
 reminders[index].status=
 "Taken";
@@ -312,15 +401,13 @@ reminders[index].status=
 await fetch(
 
 API+
-
 "/edit/"+
 
 reminders[index]._id,
 
 {
 
-method:
-"PUT",
+method:"PUT",
 
 headers:{
 
@@ -343,50 +430,50 @@ loadReminders();
 
 }
 
-async function checkReminder(){
+catch(err){
 
-await loadReminders();
+console.log(err);
+
+}
+
+}
+
+async function checkReminder(){
 
 let now=
 new Date();
 
-let current=
+let currentTime =
 
-now
+String(
+now.getHours()
+)
 
-.toLocaleTimeString(
+.padStart(
+2,
+"0"
+)
 
-"en-GB",
+*
 
-{
+":"
 
-hour:
-"2-digit",
+*
 
-minute:
-"2-digit",
+String(
+now.getMinutes()
+)
 
-hour12:
-false
-
-}
-
+.padStart(
+2,
+"0"
 );
 
-console.log(
-"TIME:",
-current
-);
-
-for(
-
-let r of reminders
-
-){
+for(let r of reminders){
 
 if(
 
-r.time===current
+r.time===currentTime
 
 &&
 
@@ -397,10 +484,6 @@ r.status!=="Taken"
 !r.notified
 
 ){
-
-console.log(
-"TRIGGERED"
-);
 
 try{
 
@@ -420,9 +503,13 @@ new Notification(
 
 body:
 
-## `${r.tablet}
+r.tablet+
 
-${r.message}`
+" - "+
+
+r.message,
+
+requireInteraction:true
 
 }
 
@@ -430,11 +517,13 @@ ${r.message}`
 
 }
 
-currentAudio=
+currentAudio =
 
 new Audio(
 
-r.tone
+r.tone ||
+
+"https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
 
 );
 
@@ -442,7 +531,9 @@ await currentAudio.play();
 
 alert(
 
-`💊 Take ${r.tablet}`
+"💊 Time to take: "+
+
+r.tablet
 
 );
 
@@ -464,9 +555,7 @@ console.log(err);
 
 function stopReminder(){
 
-if(
-currentAudio
-){
+if(currentAudio){
 
 currentAudio.pause();
 
@@ -476,12 +565,28 @@ currentAudio.currentTime=0;
 
 }
 
-setInterval(
+function snoozeReminder(){
 
-checkReminder,
+stopReminder();
 
-5000
-
+alert(
+"Snoozed"
 );
 
+}
+
 loadReminders();
+
+setInterval(
+
+async()=>{
+
+await loadReminders();
+
+checkReminder();
+
+},
+
+10000
+
+);
