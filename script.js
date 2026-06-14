@@ -1,72 +1,31 @@
 let reminders = [];
-
 let editId = null;
-
 let currentAudio = null;
 
 const API =
 "https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
-if ("Notification" in window) {
-
-window.addEventListener(
-
-"click",
-
-()=>{
-
-if(
-
-Notification.permission !==
-
-"granted"
-
-){
+if("Notification" in window){
 
 Notification.requestPermission();
-
-}
-
-},
-
-{
-
-once:true
-
-}
-
-);
 
 }
 
 async function saveReminder(){
 
 let tablet =
-
-document.getElementById(
-"tablet"
-).value;
+document.getElementById("tablet").value;
 
 let message =
-
-document.getElementById(
-"message"
-).value;
+document.getElementById("message").value;
 
 let time =
-
-document.getElementById(
-"time"
-).value;
+document.getElementById("time").value;
 
 if(
-
 !tablet ||
-
 !message ||
-
 !time
-
 ){
 
 alert(
@@ -77,7 +36,7 @@ return;
 
 }
 
-let data = {
+let data={
 
 tablet,
 
@@ -95,23 +54,14 @@ status:
 
 };
 
-await sendReminder(
-data
-);
-
-}
-
-async function sendReminder(data){
-
 try{
 
 if(editId){
 
 await fetch(
 
-API +
-
-"/edit/" +
+API+
+"/edit/"+
 
 editId,
 
@@ -137,7 +87,7 @@ data
 
 );
 
-editId = null;
+editId=null;
 
 }
 
@@ -145,8 +95,7 @@ else{
 
 await fetch(
 
-API +
-
+API+
 "/add",
 
 {
@@ -175,7 +124,11 @@ data
 
 clearInputs();
 
-loadReminders();
+await loadReminders();
+
+alert(
+"Reminder Saved"
+);
 
 }
 
@@ -184,9 +137,7 @@ catch(err){
 console.log(err);
 
 alert(
-
 "Unable to save"
-
 );
 
 }
@@ -207,35 +158,24 @@ document.getElementById(
 "time"
 ).value="";
 
-let tone =
-document.getElementById(
-"tone"
-);
-
-if(tone)
-tone.value="";
-
 }
 
 function displayReminder(){
 
-let list =
-
+let list=
 document.getElementById(
 "list"
 );
 
 if(
-
 reminders.length===0
-
 ){
 
 list.innerHTML=`
 
 <div class="card">
 
-🌸 No reminders yet
+🌸 No reminders
 
 </div>
 
@@ -245,13 +185,13 @@ return;
 
 }
 
-let output="";
+let html="";
 
 reminders.forEach(
 
 (r,index)=>{
 
-output += `
+html += `
 
 <div class="card">
 
@@ -275,65 +215,47 @@ ${r.message}
 
 <p>
 
-Status:
-
-${r.status ||
+${r.status||
 
 "Upcoming"}
 
 </p>
 
-<div class="action-row">
-
 <button
-
 onclick=
-
 "editReminder(
-
 '${r._id}'
-
 )"
 
 >
 
-✏ Edit
+Edit
 
 </button>
 
 <button
-
 onclick=
-
 "markDone(
-
 ${index}
-
 )"
 
 >
 
-✅ Taken
+Taken
 
 </button>
 
 <button
-
 onclick=
-
 "deleteReminder(
-
 ${index}
-
 )"
 
 >
 
-🗑 Delete
+Delete
 
 </button>
-
-</div>
 
 </div>
 
@@ -343,7 +265,8 @@ ${index}
 
 );
 
-list.innerHTML = output;
+list.innerHTML=
+html;
 
 }
 
@@ -351,19 +274,21 @@ async function loadReminders(){
 
 try{
 
-let res =
+let res=
 
 await fetch(
 
-API +
+API+
 
 "/all"
 
 );
 
-reminders =
+reminders=
 
 await res.json();
+
+displayReminder();
 
 }
 
@@ -371,11 +296,43 @@ catch(err){
 
 console.log(err);
 
-reminders=[];
+}
 
 }
 
-displayReminder();
+function editReminder(id){
+
+let r=
+
+reminders.find(
+
+x=>
+
+x._id===id
+
+);
+
+if(
+!r
+)
+return;
+
+document.getElementById(
+"tablet"
+).value=
+r.tablet;
+
+document.getElementById(
+"message"
+).value=
+r.message;
+
+document.getElementById(
+"time"
+).value=
+r.time;
+
+editId=id;
 
 }
 
@@ -385,16 +342,15 @@ try{
 
 await fetch(
 
-API +
+API+
 
-"/delete/" +
+"/delete/"+
 
 reminders[index]._id,
 
 {
 
 method:
-
 "DELETE"
 
 }
@@ -413,67 +369,27 @@ console.log(err);
 
 }
 
-function editReminder(id){
-
-let reminder =
-
-reminders.find(
-
-r=>
-
-r._id===id
-
-);
-
-if(
-!reminder
-)
-return;
-
-document.getElementById(
-"tablet"
-).value=
-
-reminder.tablet;
-
-document.getElementById(
-"message"
-).value=
-
-reminder.message;
-
-document.getElementById(
-"time"
-).value=
-
-reminder.time;
-
-editId=id;
-
-}
-
 async function markDone(index){
 
 try{
 
 reminders[index]
 
-.status =
+.status=
 
 "Taken";
 
 await fetch(
 
-API +
+API+
 
-"/edit/" +
+"/edit/"+
 
 reminders[index]._id,
 
 {
 
 method:
-
 "PUT",
 
 headers:{
@@ -510,24 +426,18 @@ console.log(err);
 
 function checkReminder(){
 
-let now =
-
+let now=
 new Date();
 
-let currentTime =
+let currentTime=
 
 String(
-
 now.getHours()
-
 )
 
 .padStart(
-
 2,
-
 "0"
-
 )
 
 *
@@ -537,17 +447,16 @@ now.getHours()
 *
 
 String(
-
 now.getMinutes()
-
 )
 
 .padStart(
-
 2,
-
 "0"
+);
 
+console.log(
+currentTime
 );
 
 reminders.forEach(
@@ -556,19 +465,33 @@ async(r)=>{
 
 if(
 
-r.time===
+String(
+r.time
+)
 
-currentTime &&
+===
 
-!r.notified &&
+currentTime
 
-r.status !==
+&&
+
+r.status
+
+!==
 
 "Taken"
+
+&&
+
+!r.notified
 
 ){
 
 try{
+
+console.log(
+"Reminder Triggered"
+);
 
 if(
 
@@ -586,15 +509,11 @@ new Notification(
 
 body:
 
-r.tablet +
+r.tablet+
 
-" - " +
+" - "+
 
-r.message,
-
-requireInteraction:
-
-true
+r.message
 
 }
 
@@ -602,23 +521,19 @@ true
 
 }
 
-currentAudio =
+currentAudio=
 
 new Audio(
-
-r.tone ||
 
 "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
 
 );
 
-currentAudio.loop=true;
-
 await currentAudio.play();
 
 alert(
 
-"💊 Time to take: " +
+"💊 Take " +
 
 r.tablet
 
@@ -656,21 +571,11 @@ currentAudio.currentTime=0;
 
 }
 
-function snoozeReminder(){
-
-stopReminder();
-
-alert(
-"Snoozed"
-);
-
-}
-
 setInterval(
 
 checkReminder,
 
-30000
+1000
 
 );
 
