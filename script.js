@@ -1,50 +1,128 @@
 let reminders = [];
+
 let editId = null;
+
 let currentAudio = null;
 
 const API =
 "https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
-if ("Notification" in window) {
+if("Notification" in window){
+
+window.addEventListener(
+
+"click",
+
+()=>{
+
+if(
+
+Notification.permission !==
+
+"granted"
+
+){
+
 Notification.requestPermission();
+
 }
 
-async function saveReminder() {
+},
+
+{once:true}
+
+);
+
+}
+
+async function saveReminder(){
 
 let tablet =
-document.getElementById("tablet").value;
+document.getElementById(
+"tablet"
+).value;
 
 let message =
-document.getElementById("message").value;
+document.getElementById(
+"message"
+).value;
 
 let time =
-document.getElementById("time").value;
+document.getElementById(
+"time"
+).value;
 
-let toneFile =
-document.getElementById("tone").files[0];
-
-let tone = "";
-
-if (toneFile) {
-tone =
-URL.createObjectURL(toneFile);
-}
+let toneInput =
+document.getElementById(
+"tone"
+);
 
 if(
 !tablet ||
 !message ||
 !time
 ){
-alert("Fill all fields");
+
+alert(
+"Fill all fields"
+);
+
 return;
+
 }
 
-let data = {
+let data={
+
 tablet,
+
 message,
+
 time,
-tone
+
+status:
+
+"Upcoming"
+
 };
+
+if(
+
+toneInput.files[0]
+
+){
+
+const reader =
+new FileReader();
+
+reader.onload =
+async()=>{
+
+data.tone =
+reader.result;
+
+await sendReminder(
+data
+);
+
+};
+
+reader.readAsDataURL(
+
+toneInput.files[0]
+
+);
+
+return;
+
+}
+
+await sendReminder(
+data
+);
+
+}
+
+async function sendReminder(data){
 
 try{
 
@@ -52,8 +130,10 @@ if(editId){
 
 await fetch(
 
-API +
-"/edit/" +
+API+
+
+"/edit/"+
+
 editId,
 
 {
@@ -61,12 +141,18 @@ editId,
 method:"PUT",
 
 headers:{
+
 "Content-Type":
+
 "application/json"
+
 },
 
 body:
-JSON.stringify(data)
+
+JSON.stringify(
+data
+)
 
 }
 
@@ -80,7 +166,8 @@ else{
 
 await fetch(
 
-API +
+API+
+
 "/add",
 
 {
@@ -88,12 +175,18 @@ API +
 method:"POST",
 
 headers:{
+
 "Content-Type":
+
 "application/json"
+
 },
 
 body:
-JSON.stringify(data)
+
+JSON.stringify(
+data
+)
 
 }
 
@@ -112,7 +205,9 @@ catch(err){
 console.log(err);
 
 alert(
-"Unable to save reminder"
+
+"Unable to save"
+
 );
 
 }
@@ -141,7 +236,7 @@ document.getElementById(
 
 function displayReminder(){
 
-let list =
+let list=
 document.getElementById(
 "list"
 );
@@ -153,7 +248,9 @@ reminders.length===0
 list.innerHTML=`
 
 <div class="card">
+
 🌸 No reminders yet
+
 </div>
 
 `;
@@ -168,52 +265,87 @@ reminders.forEach(
 
 (r,index)=>{
 
-output += `
+output+=`
 
 <div class="card">
 
 <h3>
+
 💊 ${r.tablet}
+
 </h3>
 
 <p>
+
 ${r.message}
+
 </p>
 
 <p>
+
 ⏰ ${r.time}
+
 </p>
 
 <p>
+
 Status:
-${r.status || "Upcoming"}
+
+${r.status||
+
+"Upcoming"}
+
 </p>
 
 <div class="action-row">
 
 <button
+
 onclick=
-"editReminder('${r._id}')"
+
+"editReminder(
+
+'${r._id}'
+
+)"
 
 >
 
-✏ Edit </button>
+✏ Edit
+
+</button>
 
 <button
+
 onclick=
-"markDone(${index})"
+
+"markDone(
+
+${index}
+
+)"
 
 >
 
-✅ Taken </button>
+✅ Taken
+
+</button>
 
 <button
+
 onclick=
-"deleteReminder(${index})"
+
+"deleteReminder(
+
+${index}
+
+)"
 
 >
 
-🗑 Delete </button>
+🗑 Delete
+
+</button>
 
 </div>
 
@@ -234,13 +366,18 @@ async function loadReminders(){
 
 try{
 
-let res =
+let res=
+
 await fetch(
-API +
+
+API+
+
 "/all"
+
 );
 
-reminders =
+reminders=
+
 await res.json();
 
 }
@@ -263,13 +400,16 @@ try{
 
 await fetch(
 
-API +
-"/delete/" +
+API+
+
+"/delete/"+
+
 reminders[index]._id,
 
 {
 
 method:
+
 "DELETE"
 
 }
@@ -290,7 +430,7 @@ console.log(err);
 
 function editReminder(id){
 
-let reminder =
+let reminder=
 
 reminders.find(
 
@@ -308,16 +448,19 @@ return;
 document.getElementById(
 "tablet"
 ).value=
+
 reminder.tablet;
 
 document.getElementById(
 "message"
 ).value=
+
 reminder.message;
 
 document.getElementById(
 "time"
 ).value=
+
 reminder.time;
 
 editId=id;
@@ -328,41 +471,41 @@ async function markDone(index){
 
 try{
 
+reminders[index]
+
+.status=
+
+"Taken";
+
 await fetch(
 
-API +
-"/edit/" +
+API+
+
+"/edit/"+
+
 reminders[index]._id,
 
 {
 
-method:"PUT",
+method:
+
+"PUT",
 
 headers:{
+
 "Content-Type":
+
 "application/json"
+
 },
 
 body:
 
-JSON.stringify({
+JSON.stringify(
 
-tablet:
-reminders[index].tablet,
+reminders[index]
 
-message:
-reminders[index].message,
-
-time:
-reminders[index].time,
-
-tone:
-reminders[index].tone,
-
-status:
-"Taken"
-
-})
+)
 
 }
 
@@ -383,17 +526,23 @@ console.log(err);
 function checkReminder(){
 
 let now=
+
 new Date();
 
 let currentTime=
 
 String(
+
 now.getHours()
+
 )
 
 .padStart(
+
 2,
+
 "0"
+
 )
 
 *
@@ -403,25 +552,42 @@ now.getHours()
 *
 
 String(
+
 now.getMinutes()
+
 )
 
 .padStart(
+
 2,
+
 "0"
+
 );
 
 reminders.forEach(
 
-r=>{
+async(r)=>{
 
 if(
 
-r.time===currentTime &&
+r.time===
+
+currentTime
+
+&&
 
 !r.notified
 
+&&
+
+r.status!==
+
+"Taken"
+
 ){
+
+try{
 
 if(
 
@@ -443,7 +609,11 @@ r.tablet+
 
 " - "+
 
-r.message
+r.message,
+
+requireInteraction:
+
+true
 
 }
 
@@ -458,14 +628,36 @@ r.tone
 currentAudio=
 
 new Audio(
+
 r.tone
+
 );
 
-currentAudio.play();
+currentAudio.loop=
+true;
+
+await currentAudio.play();
 
 }
 
-r.notified=true;
+alert(
+
+"💊 Time to take "+
+
+r.tablet
+
+);
+
+r.notified=
+true;
+
+}
+
+catch(err){
+
+console.log(err);
+
+}
 
 }
 
@@ -494,14 +686,17 @@ function snoozeReminder(){
 stopReminder();
 
 alert(
-"Snoozed for 5 minutes"
+"Snoozed"
 );
 
 }
 
 setInterval(
+
 checkReminder,
-1000
+
+30000
+
 );
 
 loadReminders();
