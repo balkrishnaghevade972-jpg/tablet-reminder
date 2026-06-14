@@ -7,7 +7,7 @@ let currentAudio = null;
 const API =
 "https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
-if("Notification" in window){
+if ("Notification" in window) {
 
 window.addEventListener(
 
@@ -29,7 +29,11 @@ Notification.requestPermission();
 
 },
 
-{once:true}
+{
+
+once:true
+
+}
 
 );
 
@@ -38,29 +42,31 @@ Notification.requestPermission();
 async function saveReminder(){
 
 let tablet =
+
 document.getElementById(
 "tablet"
 ).value;
 
 let message =
+
 document.getElementById(
 "message"
 ).value;
 
 let time =
+
 document.getElementById(
 "time"
 ).value;
 
-let toneInput =
-document.getElementById(
-"tone"
-);
-
 if(
+
 !tablet ||
+
 !message ||
+
 !time
+
 ){
 
 alert(
@@ -71,7 +77,7 @@ return;
 
 }
 
-let data={
+let data = {
 
 tablet,
 
@@ -79,42 +85,15 @@ message,
 
 time,
 
+tone:
+
+"https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
+
 status:
 
 "Upcoming"
 
 };
-
-if(
-
-toneInput.files[0]
-
-){
-
-const reader =
-new FileReader();
-
-reader.onload =
-async()=>{
-
-data.tone =
-reader.result;
-
-await sendReminder(
-data
-);
-
-};
-
-reader.readAsDataURL(
-
-toneInput.files[0]
-
-);
-
-return;
-
-}
 
 await sendReminder(
 data
@@ -130,9 +109,9 @@ if(editId){
 
 await fetch(
 
-API+
+API +
 
-"/edit/"+
+"/edit/" +
 
 editId,
 
@@ -158,7 +137,7 @@ data
 
 );
 
-editId=null;
+editId = null;
 
 }
 
@@ -166,7 +145,7 @@ else{
 
 await fetch(
 
-API+
+API +
 
 "/add",
 
@@ -228,21 +207,28 @@ document.getElementById(
 "time"
 ).value="";
 
+let tone =
 document.getElementById(
 "tone"
-).value="";
+);
+
+if(tone)
+tone.value="";
 
 }
 
 function displayReminder(){
 
-let list=
+let list =
+
 document.getElementById(
 "list"
 );
 
 if(
+
 reminders.length===0
+
 ){
 
 list.innerHTML=`
@@ -265,7 +251,7 @@ reminders.forEach(
 
 (r,index)=>{
 
-output+=`
+output += `
 
 <div class="card">
 
@@ -291,7 +277,7 @@ ${r.message}
 
 Status:
 
-${r.status||
+${r.status ||
 
 "Upcoming"}
 
@@ -357,8 +343,7 @@ ${index}
 
 );
 
-list.innerHTML=
-output;
+list.innerHTML = output;
 
 }
 
@@ -366,17 +351,17 @@ async function loadReminders(){
 
 try{
 
-let res=
+let res =
 
 await fetch(
 
-API+
+API +
 
 "/all"
 
 );
 
-reminders=
+reminders =
 
 await res.json();
 
@@ -400,9 +385,9 @@ try{
 
 await fetch(
 
-API+
+API +
 
-"/delete/"+
+"/delete/" +
 
 reminders[index]._id,
 
@@ -430,7 +415,7 @@ console.log(err);
 
 function editReminder(id){
 
-let reminder=
+let reminder =
 
 reminders.find(
 
@@ -473,15 +458,15 @@ try{
 
 reminders[index]
 
-.status=
+.status =
 
 "Taken";
 
 await fetch(
 
-API+
+API +
 
-"/edit/"+
+"/edit/" +
 
 reminders[index]._id,
 
@@ -525,11 +510,11 @@ console.log(err);
 
 function checkReminder(){
 
-let now=
+let now =
 
 new Date();
 
-let currentTime=
+let currentTime =
 
 String(
 
@@ -573,15 +558,11 @@ if(
 
 r.time===
 
-currentTime
+currentTime &&
 
-&&
+!r.notified &&
 
-!r.notified
-
-&&
-
-r.status!==
+r.status !==
 
 "Taken"
 
@@ -605,9 +586,9 @@ new Notification(
 
 body:
 
-r.tablet+
+r.tablet +
 
-" - "+
+" - " +
 
 r.message,
 
@@ -621,35 +602,29 @@ true
 
 }
 
-if(
-r.tone
-){
-
-currentAudio=
+currentAudio =
 
 new Audio(
 
-r.tone
+r.tone ||
+
+"https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
 
 );
 
-currentAudio.loop=
-true;
+currentAudio.loop=true;
 
 await currentAudio.play();
 
-}
-
 alert(
 
-"💊 Time to take "+
+"💊 Time to take: " +
 
 r.tablet
 
 );
 
-r.notified=
-true;
+r.notified=true;
 
 }
 
