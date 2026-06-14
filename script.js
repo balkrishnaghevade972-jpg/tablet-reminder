@@ -88,7 +88,7 @@ if (editId) {
 
 await fetch(
 
-"http://localhost:5000/reminders/edit/" +
+"https://tablet-reminder-backend-zpki.onrender.com" +
 
 editId,
 
@@ -129,7 +129,7 @@ else {
 
 await fetch(
 
-"http://localhost:5000/reminders/add",
+"https://tablet-reminder-backend-zpki.onrender.com",
 
 {
 
@@ -383,7 +383,7 @@ let res =
 
 await fetch(
 
-"http://localhost:5000/reminders/all"
+"https://tablet-reminder-backend-zpki.onrender.com"
 
 );
 
@@ -433,7 +433,7 @@ reminders[index]._id
 
 await fetch(
 
-"http://localhost:5000/reminders/delete/" +
+"https://tablet-reminder-backend-zpki.onrender.com" +
 
 reminders[index]._id,
 
@@ -575,7 +575,7 @@ reminders[index]._id
 
 await fetch(
 
-"http://localhost:5000/reminders/edit/" +
+"https://tablet-reminder-backend-zpki.onrender.com" +
 
 reminders[index]._id,
 
