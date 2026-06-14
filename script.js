@@ -1,202 +1,105 @@
 let reminders = [];
-
 let editId = null;
-
 let currentAudio = null;
 
-
+const API =
+"https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
 if ("Notification" in window) {
-
 Notification.requestPermission();
-
 }
-
-
 
 async function saveReminder() {
 
 let tablet =
-document.getElementById(
-"tablet"
-).value;
+document.getElementById("tablet").value;
 
 let message =
-document.getElementById(
-"message"
-).value;
+document.getElementById("message").value;
 
 let time =
-document.getElementById(
-"time"
-).value;
+document.getElementById("time").value;
 
-let toneInput =
-document.getElementById(
-"tone"
-);
+let toneFile =
+document.getElementById("tone").files[0];
 
 let tone = "";
 
-if (
-toneInput.files[0]
-) {
-
+if (toneFile) {
 tone =
-URL.createObjectURL(
-toneInput.files[0]
-);
-
+URL.createObjectURL(toneFile);
 }
 
-
-
-if (
+if(
 !tablet ||
 !message ||
 !time
-) {
-
-alert(
-"Fill all fields"
-);
-
+){
+alert("Fill all fields");
 return;
-
 }
 
-
-
 let data = {
-
 tablet,
 message,
 time,
 tone
-
 };
 
+try{
 
-
-try {
-
-
-
-if (editId) {
-
-
+if(editId){
 
 await fetch(
 
-"https://tablet-reminder-backend-zpki.onrender.com" +
-
+API +
+"/edit/" +
 editId,
 
 {
 
-method:
-"PUT",
+method:"PUT",
 
-headers: {
-
+headers:{
 "Content-Type":
-
 "application/json"
-
 },
 
 body:
-
-JSON.stringify(
-data
-)
+JSON.stringify(data)
 
 }
 
 );
 
-
-
-editId = null;
+editId=null;
 
 }
 
-
-
-else {
-
-
+else{
 
 await fetch(
 
-"https://tablet-reminder-backend-zpki.onrender.com",
+API +
+"/add",
 
 {
 
-method:
-"POST",
+method:"POST",
 
-headers: {
-
+headers:{
 "Content-Type":
-
 "application/json"
-
 },
 
 body:
-
-JSON.stringify(
-data
-)
+JSON.stringify(data)
 
 }
 
 );
 
-
-
 }
-
-
-
-}
-
-
-
-catch (e) {
-
-
-
-reminders.push({
-
-...data,
-
-status:
-
-"Upcoming",
-
-notified:
-
-false
-
-});
-
-
-
-localStorage.setItem(
-
-"reminders",
-
-JSON.stringify(
-reminders
-)
-
-);
-
-}
-
-
 
 clearInputs();
 
@@ -204,51 +107,53 @@ loadReminders();
 
 }
 
+catch(err){
 
+console.log(err);
 
-function clearInputs() {
-
-document.getElementById(
-"tablet"
-).value = "";
-
-document.getElementById(
-"message"
-).value = "";
-
-document.getElementById(
-"time"
-).value = "";
-
-document.getElementById(
-"tone"
-).value = "";
+alert(
+"Unable to save reminder"
+);
 
 }
 
+}
 
+function clearInputs(){
 
-function displayReminder() {
+document.getElementById(
+"tablet"
+).value="";
+
+document.getElementById(
+"message"
+).value="";
+
+document.getElementById(
+"time"
+).value="";
+
+document.getElementById(
+"tone"
+).value="";
+
+}
+
+function displayReminder(){
 
 let list =
 document.getElementById(
 "list"
 );
 
+if(
+reminders.length===0
+){
 
-
-if (
-reminders.length === 0
-) {
-
-list.innerHTML =
-
-`
+list.innerHTML=`
 
 <div class="card">
-
 🌸 No reminders yet
-
 </div>
 
 `;
@@ -257,103 +162,58 @@ return;
 
 }
 
-
-
-let output = "";
-
-
+let output="";
 
 reminders.forEach(
 
-(r, index) => {
-
-
+(r,index)=>{
 
 output += `
 
 <div class="card">
 
 <h3>
-
 💊 ${r.tablet}
-
 </h3>
 
 <p>
-
 ${r.message}
-
 </p>
 
 <p>
-
 ⏰ ${r.time}
-
 </p>
 
 <p>
-
 Status:
-
 ${r.status || "Upcoming"}
-
 </p>
-
-
 
 <div class="action-row">
 
 <button
-
 onclick=
-
-"editReminder(
-
-'${r._id || index}'
-
-)"
+"editReminder('${r._id}')"
 
 >
 
-✏ Edit
-
-</button>
-
-
+✏ Edit </button>
 
 <button
-
 onclick=
-
-"markDone(
-
-${index}
-
-)"
+"markDone(${index})"
 
 >
 
-✅ Taken
-
-</button>
-
-
+✅ Taken </button>
 
 <button
-
 onclick=
-
-"deleteReminder(
-
-${index}
-
-)"
+"deleteReminder(${index})"
 
 >
 
-🗑 Delete
-
-</button>
+🗑 Delete </button>
 
 </div>
 
@@ -365,218 +225,113 @@ ${index}
 
 );
 
-
-
-list.innerHTML =
-
+list.innerHTML=
 output;
 
 }
 
+async function loadReminders(){
 
-
-async function loadReminders() {
-
-try {
+try{
 
 let res =
-
 await fetch(
-
-"https://tablet-reminder-backend-zpki.onrender.com"
-
+API +
+"/all"
 );
 
 reminders =
-
 await res.json();
 
 }
 
-catch {
+catch(err){
 
-reminders =
+console.log(err);
 
-JSON.parse(
-
-localStorage.getItem(
-"reminders"
-)
-
-)
-
-||
-
-[];
+reminders=[];
 
 }
-
-
 
 displayReminder();
 
 }
 
+async function deleteReminder(index){
 
-
-async function deleteReminder(index) {
-
-try {
-
-if (
-
-reminders[index]._id
-
-) {
-
-
+try{
 
 await fetch(
 
-"https://tablet-reminder-backend-zpki.onrender.com" +
-
+API +
+"/delete/" +
 reminders[index]._id,
 
 {
 
 method:
-
 "DELETE"
 
 }
 
 );
 
-
-
-}
-
-
-
-else {
-
-
-
-reminders.splice(
-
-index,
-
-1
-
-);
-
-
-
-localStorage.setItem(
-
-"reminders",
-
-JSON.stringify(
-reminders
-)
-
-);
-
-}
-
-
-
-}
-
-catch {}
-
-
-
 loadReminders();
 
 }
 
+catch(err){
 
+console.log(err);
 
-function editReminder(id) {
+}
+
+}
+
+function editReminder(id){
 
 let reminder =
 
 reminders.find(
 
-r =>
+r=>
 
-String(
-
-r._id ||
-
-reminders.indexOf(
-r
-)
-
-)
-
-===
-
-String(
-id
-)
+r._id===id
 
 );
 
-
-
-if (
+if(
 !reminder
 )
 return;
 
-
-
 document.getElementById(
 "tablet"
-).value =
-
+).value=
 reminder.tablet;
-
-
 
 document.getElementById(
 "message"
-).value =
-
+).value=
 reminder.message;
-
-
 
 document.getElementById(
 "time"
-).value =
-
+).value=
 reminder.time;
 
-
-
-editId =
-
-reminder._id ||
-
-null;
+editId=id;
 
 }
-
-
 
 async function markDone(index){
 
 try{
 
-reminders[index].status =
-"Taken";
-
-if(
-reminders[index]._id
-){
-
 await fetch(
 
-"https://tablet-reminder-backend-zpki.onrender.com" +
-
+API +
+"/edit/" +
 reminders[index]._id,
 
 {
@@ -584,10 +339,8 @@ reminders[index]._id,
 method:"PUT",
 
 headers:{
-
 "Content-Type":
 "application/json"
-
 },
 
 body:
@@ -615,22 +368,6 @@ status:
 
 );
 
-}
-
-else{
-
-localStorage.setItem(
-
-"reminders",
-
-JSON.stringify(
-reminders
-)
-
-);
-
-}
-
 loadReminders();
 
 }
@@ -639,25 +376,16 @@ catch(err){
 
 console.log(err);
 
-alert(
-"Unable to update status"
-);
-
 }
 
 }
 
+function checkReminder(){
 
-
-function checkReminder() {
-
-let now =
-
+let now=
 new Date();
 
-
-
-let currentTime =
+let currentTime=
 
 String(
 now.getHours()
@@ -668,11 +396,11 @@ now.getHours()
 "0"
 )
 
-+
+*
 
 ":"
 
-+
+*
 
 String(
 now.getMinutes()
@@ -683,39 +411,25 @@ now.getMinutes()
 "0"
 );
 
-
-
 reminders.forEach(
 
-r => {
+r=>{
 
+if(
 
-
-if (
-
-r.time ===
-
-currentTime
-
-&&
+r.time===currentTime &&
 
 !r.notified
 
-) {
+){
 
+if(
 
-
-if (
-
-Notification.permission
-
-===
+Notification.permission===
 
 "granted"
 
-) {
-
-
+){
 
 new Notification(
 
@@ -725,9 +439,9 @@ new Notification(
 
 body:
 
-r.tablet +
+r.tablet+
 
-" - " +
+" - "+
 
 r.message
 
@@ -737,35 +451,23 @@ r.message
 
 }
 
-
-
-if (
+if(
 r.tone
-) {
+){
 
-
-
-currentAudio =
+currentAudio=
 
 new Audio(
 r.tone
 );
 
-
-
 currentAudio.play();
 
 }
 
-
-
-r.notified =
-
-true;
+r.notified=true;
 
 }
-
-
 
 }
 
@@ -773,35 +475,29 @@ true;
 
 }
 
+function stopReminder(){
 
-
-function stopReminder() {
-
-if (
+if(
 currentAudio
-) {
+){
 
 currentAudio.pause();
 
-currentAudio.currentTime = 0;
+currentAudio.currentTime=0;
 
 }
 
 }
 
-
-
-function snoozeReminder() {
+function snoozeReminder(){
 
 stopReminder();
 
 alert(
-"Snoozed 5 minutes"
+"Snoozed for 5 minutes"
 );
 
 }
-
-
 
 setInterval(
 checkReminder,
