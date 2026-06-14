@@ -1,55 +1,61 @@
-let reminders = [];
-let editId = null;
-let currentAudio = null;
+let reminders=[];
+let editId=null;
+let currentAudio=null;
 
-const API =
+const API=
 "https://tablet-reminder-backend-zpki.onrender.com/reminders";
 
 if("Notification" in window){
 
+window.addEventListener(
+
+"click",
+
+()=>{
+
 Notification.requestPermission();
+
+},
+
+{once:true}
+
+);
 
 }
 
 async function saveReminder(){
 
-let tablet =
+let tablet=
 document.getElementById("tablet").value;
 
-let message =
+let message=
 document.getElementById("message").value;
 
-let time =
+let time=
 document.getElementById("time").value;
 
 if(
-!tablet ||
-!message ||
+!tablet||
+!message||
 !time
 ){
 
-alert(
-"Fill all fields"
-);
+alert("Fill all fields");
 
 return;
 
 }
 
-let data={
+const data={
 
 tablet,
-
 message,
-
 time,
 
 tone:
-
 "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg",
 
 status:
-
 "Upcoming"
 
 };
@@ -61,27 +67,19 @@ if(editId){
 await fetch(
 
 API+
-"/edit/"+
-
-editId,
+"/edit/"+editId,
 
 {
 
 method:"PUT",
 
 headers:{
-
 "Content-Type":
-
 "application/json"
-
 },
 
 body:
-
-JSON.stringify(
-data
-)
+JSON.stringify(data)
 
 }
 
@@ -103,18 +101,12 @@ API+
 method:"POST",
 
 headers:{
-
 "Content-Type":
-
 "application/json"
-
 },
 
 body:
-
-JSON.stringify(
-data
-)
+JSON.stringify(data)
 
 }
 
@@ -136,62 +128,70 @@ catch(err){
 
 console.log(err);
 
-alert(
-"Unable to save"
-);
-
 }
 
 }
 
 function clearInputs(){
 
-document.getElementById(
-"tablet"
-).value="";
+document.getElementById("tablet").value="";
+document.getElementById("message").value="";
+document.getElementById("time").value="";
 
-document.getElementById(
-"message"
-).value="";
+}
 
-document.getElementById(
-"time"
-).value="";
+async function loadReminders(){
+
+try{
+
+const res=
+
+await fetch(
+
+API+"/all"
+
+);
+
+reminders=
+
+await res.json();
+
+displayReminder();
+
+}
+
+catch(err){
+
+console.log(err);
+
+}
 
 }
 
 function displayReminder(){
 
-let list=
+const list=
 document.getElementById(
 "list"
 );
 
 if(
-reminders.length===0
+!reminders.length
 ){
 
-list.innerHTML=`
+list.innerHTML=
 
-<div class="card">
-
-🌸 No reminders
-
-</div>
-
-`;
+"<div class='card'>🌸 No reminders</div>";
 
 return;
 
 }
 
-let html="";
+list.innerHTML=
 
-reminders.forEach(
+reminders.map(
 
-(r,index)=>{
-
-html += `
+(r,index)=>`
 
 <div class="card">
 
@@ -221,88 +221,35 @@ ${r.status||
 
 </p>
 
-<button
-onclick=
-"editReminder(
-'${r._id}'
-)"
+<button onclick="editReminder('${r._id}')">
 
->
-
-Edit
+✏ Edit
 
 </button>
 
-<button
-onclick=
-"markDone(
-${index}
-)"
+<button onclick="markDone(${index})">
 
->
-
-Taken
+✅ Taken
 
 </button>
 
-<button
-onclick=
-"deleteReminder(
-${index}
-)"
+<button onclick="deleteReminder(${index})">
 
->
-
-Delete
+🗑 Delete
 
 </button>
 
 </div>
 
-`;
+`
 
-}
-
-);
-
-list.innerHTML=
-html;
-
-}
-
-async function loadReminders(){
-
-try{
-
-let res=
-
-await fetch(
-
-API+
-
-"/all"
-
-);
-
-reminders=
-
-await res.json();
-
-displayReminder();
-
-}
-
-catch(err){
-
-console.log(err);
-
-}
+).join("");
 
 }
 
 function editReminder(id){
 
-let r=
+const r=
 
 reminders.find(
 
@@ -312,9 +259,7 @@ x._id===id
 
 );
 
-if(
-!r
-)
+if(!r)
 return;
 
 document.getElementById(
@@ -338,8 +283,6 @@ editId=id;
 
 async function deleteReminder(index){
 
-try{
-
 await fetch(
 
 API+
@@ -361,22 +304,9 @@ loadReminders();
 
 }
 
-catch(err){
-
-console.log(err);
-
-}
-
-}
-
 async function markDone(index){
 
-try{
-
-reminders[index]
-
-.status=
-
+reminders[index].status=
 "Taken";
 
 await fetch(
@@ -395,7 +325,6 @@ method:
 headers:{
 
 "Content-Type":
-
 "application/json"
 
 },
@@ -403,9 +332,7 @@ headers:{
 body:
 
 JSON.stringify(
-
 reminders[index]
-
 )
 
 }
@@ -416,70 +343,54 @@ loadReminders();
 
 }
 
-catch(err){
+async function checkReminder(){
 
-console.log(err);
-
-}
-
-}
-
-function checkReminder(){
+await loadReminders();
 
 let now=
 new Date();
 
-let currentTime=
+let current=
 
-String(
-now.getHours()
-)
+now
 
-.padStart(
-2,
-"0"
-)
+.toLocaleTimeString(
 
-*
+"en-GB",
 
-":"
+{
 
-*
+hour:
+"2-digit",
 
-String(
-now.getMinutes()
-)
+minute:
+"2-digit",
 
-.padStart(
-2,
-"0"
+hour12:
+false
+
+}
+
 );
 
 console.log(
-currentTime
+"TIME:",
+current
 );
 
-reminders.forEach(
+for(
 
-async(r)=>{
+let r of reminders
+
+){
 
 if(
 
-String(
-r.time
-)
-
-===
-
-currentTime
+r.time===current
 
 &&
 
-r.status
-
-!==
-
-"Taken"
+r.status!=="Taken"
 
 &&
 
@@ -487,11 +398,11 @@ r.status
 
 ){
 
-try{
-
 console.log(
-"Reminder Triggered"
+"TRIGGERED"
 );
+
+try{
 
 if(
 
@@ -509,11 +420,9 @@ new Notification(
 
 body:
 
-r.tablet+
+## `${r.tablet}
 
-" - "+
-
-r.message
+${r.message}`
 
 }
 
@@ -525,7 +434,7 @@ currentAudio=
 
 new Audio(
 
-"https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+r.tone
 
 );
 
@@ -533,9 +442,7 @@ await currentAudio.play();
 
 alert(
 
-"💊 Take " +
-
-r.tablet
+`💊 Take ${r.tablet}`
 
 );
 
@@ -552,8 +459,6 @@ console.log(err);
 }
 
 }
-
-);
 
 }
 
@@ -575,7 +480,7 @@ setInterval(
 
 checkReminder,
 
-1000
+5000
 
 );
 
